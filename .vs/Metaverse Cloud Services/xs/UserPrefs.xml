@@ -1,0 +1,29 @@
+﻿<Properties StartupConfiguration="{FCC024E5-2031-78BF-B978-FEAA2D543CF7}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Menu/ErrorMenu.cs">
+    <Files>
+      <File FileName="Assets/Scripts/Menu/MenuManager.cs" Line="39" Column="1" />
+      <File FileName="Assets/Scripts/Menu/ErrorMenu.cs" Line="25" Column="1" />
+      <File FileName="Assets/Scripts/Menu/AuthenticationMenu.cs" Line="11" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="Metaverse Cloud Services" expanded="True">
+            <Node name="Assets" expanded="True" selected="True">
+              <Node name="Scripts" expanded="True">
+                <Node name="Menu" expanded="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="772b5d43-7f10-4453-93d4-9e6f8b64e2a0" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
