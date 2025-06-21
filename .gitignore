@@ -1,0 +1,12 @@
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+obj/
+.vscode/
+*.user
+*.csproj
+*.sln
+*.log
+MemoryCaptures/
+*.unitypackage
