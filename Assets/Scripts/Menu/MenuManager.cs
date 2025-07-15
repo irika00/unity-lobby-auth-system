@@ -51,35 +51,48 @@ public class MenuManager : MonoBehaviour
 
     public async void StartClientService()
     {
+        Debug.Log("[MenuManager] ▶ StartClientService() called");
         PanelManager.CloseAll();
+        Debug.Log("[MenuManager] 🔄 All panels closed");
         PanelManager.Open("loading");
+        Debug.Log("[MenuManager] ⏳ 'loading' panel opened");
         try
         {
             if (UnityServices.State != ServicesInitializationState.Initialized)
             {
+                Debug.Log("[MenuManager] 🛠 UnityServices not initialized. Initializing...");
                 var options = new InitializationOptions();
                 options.SetProfile("default_profile");
                 await UnityServices.InitializeAsync();
+                Debug.Log("[MenuManager] ✅ UnityServices initialized");
 
+            }
+            else
+            {
+                Debug.Log("[MenuManager] ✅ UnityServices already initialized");
             }
             if (!eventsInitialized)
             {
+                Debug.Log("[MenuManager] ⚙ Setting up authentication events...");
                 SetUpEvents();
             }
 
             if (AuthenticationService.Instance.SessionTokenExists)
             {
+                Debug.Log("[MenuManager] 🔐 Session token exists. Signing in anonymously...");
                 SignInAnonymouslyAsync();
 
             }
             else
             {
+                Debug.Log("[MenuManager] 👤 No session token. Opening 'auth' panel...");
                 PanelManager.Open("auth");
             }
 
         }
         catch (Exception exception)
         {
+            Debug.LogError("[MenuManager] ❌ Exception during StartClientService(): " + exception.Message);
             ShowError(ErrorMenu.Action.StartService, "Failed to connect to the network.", "Retry");
 
         }

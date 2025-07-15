@@ -8,6 +8,13 @@ using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using System.Threading.Tasks;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
+using Unity.Netcode;
+using Unity.Services.Multiplayer;
+using Unity.Netcode.Transports.UTP;
+using Unity.Networking.Transport.Relay;
+
 
 public class LobbyMenu : Panel
 {
@@ -28,6 +35,8 @@ public class LobbyMenu : Panel
     private bool isReady = false;
     private bool isHost = false;
     private string eventsLobbyId = "";
+    private bool isStarted = false;
+    private bool isJoining = false;
 
     public override void Initialize()
     {
@@ -60,6 +69,33 @@ public class LobbyMenu : Panel
     }
 
     private async void StartGame()
+    {
+        PanelManager.Open("loading");
+        try
+        {
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(lobby.MaxPlayers);
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            var data = AllocationUtils.ToRelayServerData(allocation, "dtls");
+            transport.SetRelayServerData(data);
+            string code = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            //session data
+            SetLobbyStarting();
+            StartingSessionMenu panel = (StartingSessionMenu)PanelManager.GetSingleton("start");
+            heartbeatPeriod = 5;
+            await UnsubscribeToEventsAsync();
+            panel.StartGameByLobby(lobby, false);
+
+        }
+        catch (Exception exception)
+        {
+            Debug.Log(exception.Message);
+
+        }
+        PanelManager.Close("loading");
+
+    }
+
+    private async void SetLobbyStarting()
     {
 
     }
@@ -275,7 +311,7 @@ public class LobbyMenu : Panel
             callbacks.LobbyChanged += OnChanged;
             callbacks.LobbyEventConnectionStateChanged += OnConnectionChanged;
             callbacks.KickedFromLobby += OnKicked;
-            events = await Lobbies.Instance.SubscribeToLobbyEventsAsync(id, callbacks);
+            events = await LobbyService.Instance.SubscribeToLobbyEventsAsync(id, callbacks);
             eventsLobbyId = lobby.Id;
             return true;
 

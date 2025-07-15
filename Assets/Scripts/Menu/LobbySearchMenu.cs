@@ -8,6 +8,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using System.Threading.Tasks;
+using Unity.Services.Multiplayer;
 public class LobbySearchMenu : Panel
 {
     [SerializeField] private LobbyListItem lobbyListItemPrefab = null;
@@ -63,7 +64,7 @@ public class LobbySearchMenu : Panel
             {
                 new QueryOrder(false, QueryOrder.FieldOptions.Created)
             };
-            QueryResponse lobbies = await Lobbies.Instance.QueryLobbiesAsync(options);
+            QueryResponse lobbies = await LobbyService.Instance.QueryLobbiesAsync(options);
             if (lobbies != null && lobbies.Results != null)
             {
                 for (int i = 0; i < lobbies.Results.Count; i++)
