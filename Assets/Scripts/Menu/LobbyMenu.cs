@@ -14,6 +14,11 @@ using Unity.Netcode;
 using Unity.Services.Multiplayer;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
+using Unity.Services.CloudSave;
+using Unity.Services.CloudSave.Models.Data.Player;
+using UnityEngine.SceneManagement;
+
+
 
 
 public class LobbyMenu : Panel
@@ -60,6 +65,7 @@ public class LobbyMenu : Panel
         }
         this.lobby = lobby;
         nameText.text = lobby.Name;
+        CheckStartGameStatus();
         startButton.gameObject.SetActive(false);
         isHost = false;
         LoadPlayers();
@@ -70,6 +76,7 @@ public class LobbyMenu : Panel
 
     private async void StartGame()
     {
+        Debug.Log("called StartGame");
         PanelManager.Open("loading");
         try
         {
@@ -78,7 +85,10 @@ public class LobbyMenu : Panel
             var data = AllocationUtils.ToRelayServerData(allocation, "dtls");
             transport.SetRelayServerData(data);
             string code = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            //session data
+
+            SessionManager.role = SessionManager.Role.Host;
+            SessionManager.joinCode = code;
+            SessionManager.lobbyId = lobby.Id;
             SetLobbyStarting();
             StartingSessionMenu panel = (StartingSessionMenu)PanelManager.GetSingleton("start");
             heartbeatPeriod = 5;
@@ -97,13 +107,86 @@ public class LobbyMenu : Panel
 
     private async void SetLobbyStarting()
     {
+        try
+        {
+            UpdateLobbyOptions options = new UpdateLobbyOptions();
+            options.Data = new Dictionary<string, DataObject>();
+            options.Data.Add("started", new DataObject(DataObject.VisibilityOptions.Public, "1"));
+            lobby = await LobbyService.Instance.UpdateLobbyAsync(lobby.Id, options);
 
+        }
+        catch (Exception exception)
+        {
+            Debug.Log(exception.Message);
+
+        }
+
+    }
+
+    private async void CheckStartGameStatus()
+    {
+        if (lobby == null || lobby.Data == null)
+        {
+            Debug.LogWarning("Lobby or lobby.Data is null. Cannot check start game status.");
+            return;
+        }
+
+        StartingSessionMenu panel = (StartingSessionMenu)PanelManager.GetSingleton("start");
+        isStarted = lobby.Data.ContainsKey("started");
+        string joinCode = lobby.Data.ContainsKey("join_code") ? lobby.Data["join_code"].Value : null;
+        if (panel.isLoading == false && isStarted)
+        {
+            panel.StartGameByLobby(lobby, true);
+        }
+        if (isJoining == false && panel.isLoading && string.IsNullOrEmpty(joinCode) == false && panel.isConfirmed == false)
+        {
+            panel.StartGameByLobby(lobby, true);
+            JoinGame(joinCode);
+        }
+
+    }
+
+    private async void JoinGame(string joinCode)
+    {
+        if (string.IsNullOrEmpty(joinCode) == false)
+        {
+            isJoining = true;
+            PanelManager.Open("loading");
+            try
+            {
+                JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+                var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+                var data = AllocationUtils.ToRelayServerData(allocation, "dtls");
+                transport.SetRelayServerData(data);
+
+                //set session data
+
+                StartingSessionMenu panel = (StartingSessionMenu)PanelManager.GetSingleton("start");
+                await UnsubscribeToEventsAsync();
+                panel.StartGameConfirm();
+
+            }
+            catch (Exception exception)
+            {
+                Debug.Log(exception.Message);
+                await Leave();
+                isJoining = false;
+                PanelManager.Close("start");
+
+            }
+            PanelManager.Close("loading");
+        }
+        
     }
     private void Update()
     {
         if (lobby == null)
         {
             return;
+        }
+        if (isHost == false && isJoining == false)
+        {
+            CheckStartGameStatus();
         }
         if (lobby.HostId == AuthenticationService.Instance.PlayerId && sendingHeartbeat == false)
         {
@@ -350,6 +433,9 @@ public class LobbyMenu : Panel
         }
         lobby = null;
         events = null;
+        isStarted = false;
+        isJoining = false;
+
     }
 
     private void OnChanged(ILobbyChanges changes)
@@ -362,10 +448,13 @@ public class LobbyMenu : Panel
             }
             lobby = null;
             events = null;
+            isStarted = false;
+            isJoining = false;
         }
         else
         {
             changes.ApplyToLobby(lobby);
+            CheckStartGameStatus();
             if (IsOpen)
             {
                 LoadPlayers();

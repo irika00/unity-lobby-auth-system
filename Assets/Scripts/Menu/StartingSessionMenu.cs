@@ -14,10 +14,11 @@ public class StartingSessionMenu : Panel
 
     public void StartGameByLobby(Lobby lobby, bool waitForConfirmation)
     {
+        Debug.Log("[StartingSessionMenu] StartGameByLobby called for: " + lobby.Name);
+
         Open();
         statusText.text = "Loading the game, please wait..";
 
-        string map = lobby.Data["map"].Value;
         string sceneName = "SessionMap01";
         //set scene based on map value
 
@@ -42,6 +43,14 @@ public class StartingSessionMenu : Panel
     {
         progressimage.fillAmount = 0;
         base.Open();
+    }
+
+    public override void Close()
+    {
+        base.Close();
+        loading = false;
+        allowSceneActivation = false;
+
     }
     private System.Collections.IEnumerator LoadAsyncScene(string sceneName)
     {
