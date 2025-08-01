@@ -1,7 +1,5 @@
 # unity-lobby-auth-system
 
-# **Metaverse Cloud Services**
-
 ## Overview 
 
 This document provides details regarding an implementation of an Unity lobby authentication system. The system implements a complete multiplayer lobby system with user authentication, lobby management, and game session coordination using Unity's cloud services.
